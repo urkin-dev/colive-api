@@ -32,6 +32,12 @@ class HotelSerializer(serializers.ModelSerializer):
             return obj.photos.split(',')
         return []
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Round the rating to two decimal places
+        representation['rating'] = round(instance.rating, 1)
+        return representation
+
     class Meta:
         model = Hotel
         fields = '__all__'

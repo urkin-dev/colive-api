@@ -48,6 +48,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'email', 'first_name', 'last_name', 'phone',
                   'phone_verification_status', 'email_verification_status', 'is_staff']
+        partial = True
 
 
 class LoginSerializer(serializers.Serializer):
@@ -65,12 +66,12 @@ class LoginSerializer(serializers.Serializer):
         return user
 
 
-class SignupSerializer(serializers.Serializer):
+class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    phone = serializers.CharField()
+    phone = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
@@ -81,7 +82,7 @@ class SignupSerializer(serializers.Serializer):
             email=validated_data['email'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
-            phone=validated_data['phone'],
+            phone=validated_data.get('phone', ''),
             password=validated_data['password']
         )
 

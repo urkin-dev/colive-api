@@ -11,7 +11,6 @@ class CustomUserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
-
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
@@ -25,7 +24,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=20, blank=True, null=True)
     phone_verification_status = models.BooleanField(default=False)
     email_verification_status = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -53,7 +52,6 @@ class CancellationPolicy(models.Model):
 
 class Room(models.Model):
     name = models.CharField(max_length=255)
-    # photos = ArrayField(models.URLField()) TODO: Migrate to postgresql
     photos = models.CharField(max_length=1000)
     description = models.TextField()
     limit = models.PositiveIntegerField(validators=[MinValueValidator(1)])
@@ -62,10 +60,12 @@ class Room(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     meal = models.CharField(max_length=255)
-    cancellation_policy = models.OneToOneField(
+    hotel = models.ForeignKey(
+        'Hotel', on_delete=models.CASCADE, related_name='rooms', null=True)
+    cancellation_policy = models.ForeignKey(
         CancellationPolicy,
         on_delete=models.CASCADE,
-        related_name='room'
+        related_name='rooms'
     )
 
     def __str__(self):
@@ -73,7 +73,6 @@ class Room(models.Model):
 
 
 class Hotel(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     description = models.TextField()
     address = models.CharField(max_length=255)
@@ -93,7 +92,6 @@ class Hotel(models.Model):
     cityTimezone = models.CharField(max_length=255)
     distance = models.FloatField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    rooms = models.ManyToManyField(Room)
 
     def __str__(self):
         return self.name

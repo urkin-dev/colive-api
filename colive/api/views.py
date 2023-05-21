@@ -15,7 +15,23 @@ class CityListView(APIView):
         limit = request.GET.get('limit')
         if limit is not None:
             limit = int(limit)
-        cities = Place.objects.filter(type='city')[:limit]
+
+        # Get the desired cities based on their IDs
+        desired_city_ids = [9213, 124124, 123213213213]
+        desired_cities = Place.objects.filter(
+            type='city', cityId__in=desired_city_ids)
+
+        # Get the remaining cities excluding the desired ones
+        other_cities = Place.objects.filter(
+            type='city').exclude(cityId__in=desired_city_ids)
+
+        # Combine the desired cities and other cities
+        cities = list(desired_cities) + list(other_cities)
+
+        # Limit the number of cities if specified
+        if limit is not None:
+            cities = cities[:limit]
+
         serializer = PlaceSerializer(cities, many=True)
         return Response({'results': serializer.data})
 
@@ -44,14 +60,10 @@ class SearchPlaceView(APIView):
             'children_ages') if 'children_ages' in request.GET else None
 
         try:
-            # Retrieve the hotel based on the provided ID
             hotel = Hotel.objects.get(id=id)
         except Hotel.DoesNotExist:
             raise Http404("Hotel does not exist")
 
-        # Perform any additional filtering or calculations based on the search parameters
-
-        # Serialize the hotel data
         serializer = HotelSerializer(hotel)
         return Response(serializer.data)
 
@@ -80,6 +92,7 @@ class SearchPlacesView(APIView):
 
             hotels = hotels.filter(rooms__children_limit__gte=max_child_age)
 
+        hotels = hotels.distinct()
         serializer = HotelSerializer(hotels, many=True)
         return Response(serializer.data)
 
@@ -91,6 +104,16 @@ class CurrentUserView(APIView):
         user = request.user
         serializer = CustomUserSerializer(user)
         return Response(serializer.data)
+
+    def put(self, request, format=None):
+        user = request.user
+        serializer = CustomUserSerializer(
+            user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserExistsView(APIView):

@@ -2,17 +2,20 @@ import django
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "system.settings")
 django.setup()
-import random
-from api.models import CancellationPolicy, Room, Hotel, Place
+from api.models import CancellationPolicy, Room, Hotel
 from faker import Faker
+import random
 
 fake = Faker('ru_RU')
 
 cities = [
     {"name": "Moscow", "id": 9213, "latitude": 55.751244, "longitude": 37.618423},
-    {"name": "Saint Petersburg", "id": 124124, "latitude": 59.934280, "longitude": 30.335099},
-    {"name": "Sochi", "id": 123213213213, "latitude": 43.585525, "longitude": 39.723062}
+    {"name": "Saint Petersburg", "id": 124124,
+        "latitude": 59.934280, "longitude": 30.335099},
+    {"name": "Sochi", "id": 123213213213,
+        "latitude": 43.585525, "longitude": 39.723062}
 ]
+
 
 def create_fake_hotels(num_hotels_per_city, num_rooms_per_hotel):
     hotels = []
@@ -43,7 +46,8 @@ def create_fake_hotels(num_hotels_per_city, num_rooms_per_hotel):
 
             for _ in range(num_rooms_per_hotel):
                 cancellation_policy = CancellationPolicy(
-                    free_cancellation_before=fake.future_datetime(end_date='+1y'),
+                    free_cancellation_before=fake.future_datetime(
+                        end_date='+1y'),
                     free_cancellation_possible=fake.boolean(),
                     penalty_amount=random.uniform(0, 100),
                 )
@@ -66,6 +70,7 @@ def create_fake_hotels(num_hotels_per_city, num_rooms_per_hotel):
             hotels.append(hotel)
 
     return hotels
+
 
 if __name__ == "__main__":
     num_hotels_per_city = 10

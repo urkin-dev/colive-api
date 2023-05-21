@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, CancellationPolicy, Room, Hotel, Place
 
 
-@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     ordering = ('email',)
@@ -13,3 +12,10 @@ class CustomUserAdmin(UserAdmin):
         ('Custom fields', {'fields': (
             'phone', 'phone_verification_status', 'email_verification_status')}),
     )
+
+
+admin.site.register(CancellationPolicy)
+admin.site.register(Room)
+admin.site.register(Hotel)
+admin.site.register(Place)
+admin.site.register(CustomUser, CustomUserAdmin)

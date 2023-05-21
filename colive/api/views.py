@@ -1,9 +1,108 @@
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import LoginSerializer, SignupSerializer
-from rest_framework.permissions import AllowAny
+from .serializers import LoginSerializer, SignupSerializer, CustomUserSerializer, PlaceSerializer, HotelSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import CustomUser, Place, Hotel
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.http import Http404
+
+
+class CityListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        limit = request.GET.get('limit')
+        if limit is not None:
+            limit = int(limit)
+        cities = Place.objects.filter(type='city')[:limit]
+        serializer = PlaceSerializer(cities, many=True)
+        return Response({'results': serializer.data})
+
+
+class SuggestedPlaceView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        search = request.GET.get('search')
+        if search:
+            places = Place.objects.filter(name__icontains=search)
+        else:
+            places = Place.objects.all()
+        serializer = PlaceSerializer(places, many=True)
+        return Response(serializer.data)
+
+
+class SearchPlaceView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, id):
+        adults = int(request.GET.get('adults'))
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        children_ages = request.GET.get(
+            'children_ages') if 'children_ages' in request.GET else None
+
+        try:
+            # Retrieve the hotel based on the provided ID
+            hotel = Hotel.objects.get(id=id)
+        except Hotel.DoesNotExist:
+            raise Http404("Hotel does not exist")
+
+        # Perform any additional filtering or calculations based on the search parameters
+
+        # Serialize the hotel data
+        serializer = HotelSerializer(hotel)
+        return Response(serializer.data)
+
+
+class SearchPlacesView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        adults = int(request.GET.get('adults'))
+        city_id = int(request.GET.get('cityId')
+                      ) if 'cityId' in request.GET else None
+        start_date = request.GET.get('startDate')
+        end_date = request.GET.get('endDate')
+        children_ages = request.GET.get('childrenAges')
+
+        hotels = Hotel.objects.all()
+
+        if city_id:
+            hotels = hotels.filter(cityId=city_id)
+
+        hotels = hotels.filter(rooms__limit__gte=adults)
+
+        if children_ages:
+            children_ages_list = children_ages.split(',')
+            max_child_age = max([int(age) for age in children_ages_list])
+
+            hotels = hotels.filter(rooms__children_limit__gte=max_child_age)
+
+        serializer = HotelSerializer(hotels, many=True)
+        return Response(serializer.data)
+
+
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        user = request.user
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserExistsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        email = request.query_params.get('email', '')
+
+        user_exists = CustomUser.objects.filter(email=email).exists(
+        )
+
+        return Response({'exists': user_exists})
 
 
 class SignupView(APIView):
@@ -23,7 +122,6 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, format=None):
-        print(request)
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():

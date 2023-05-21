@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
@@ -42,3 +43,69 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
+
+class CancellationPolicy(models.Model):
+    free_cancellation_before = models.DateTimeField(blank=True, null=True)
+    free_cancellation_possible = models.BooleanField(default=False)
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+
+class Room(models.Model):
+    name = models.CharField(max_length=255)
+    # photos = ArrayField(models.URLField()) TODO: Migrate to postgresql
+    photos = models.CharField(max_length=1000)
+    description = models.TextField()
+    limit = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    children_limit = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)], default=10)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    meal = models.CharField(max_length=255)
+    cancellation_policy = models.OneToOneField(
+        CancellationPolicy,
+        on_delete=models.CASCADE,
+        related_name='room'
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class Hotel(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    address = models.CharField(max_length=255)
+    is_favorite = models.BooleanField(default=False)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    photos = models.CharField(max_length=1000)
+    rating = models.FloatField(
+        validators=[MinValueValidator(0), MaxValueValidator(5)])
+    count_reviews = models.PositiveIntegerField()
+    stars = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
+    check_in_time = models.CharField(max_length=10)
+    check_out_time = models.CharField(max_length=10)
+    cityName = models.CharField(max_length=255)
+    cityId = models.PositiveIntegerField()
+    cityTimezone = models.CharField(max_length=255)
+    distance = models.FloatField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    rooms = models.ManyToManyField(Room)
+
+    def __str__(self):
+        return self.name
+
+
+class Place(models.Model):
+    name = models.CharField(max_length=255)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    cityId = models.PositiveIntegerField(null=True, blank=True)
+    type = models.CharField(max_length=10, choices=(
+        ('city', 'City'), ('place', 'Place')))
+
+    def __str__(self):
+        return self.name

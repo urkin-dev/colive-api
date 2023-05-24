@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import LoginSerializer, SignupSerializer, CustomUserSerializer, PlaceSerializer, HotelSerializer
+from .serializers import LoginSerializer, SignupSerializer, CustomUserSerializer, CitySerializer, PlaceSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import CustomUser, Place, Hotel
+from .models import CustomUser, City, Place
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import Http404
 
@@ -18,11 +18,11 @@ class CityListView(APIView):
 
         # Get the desired cities based on their IDs
         desired_city_ids = [9213, 124124, 123213213213]
-        desired_cities = Place.objects.filter(
+        desired_cities = City.objects.filter(
             type='city', cityId__in=desired_city_ids)
 
         # Get the remaining cities excluding the desired ones
-        other_cities = Place.objects.filter(
+        other_cities = City.objects.filter(
             type='city').exclude(cityId__in=desired_city_ids)
 
         # Combine the desired cities and other cities
@@ -32,20 +32,20 @@ class CityListView(APIView):
         if limit is not None:
             cities = cities[:limit]
 
-        serializer = PlaceSerializer(cities, many=True)
+        serializer = CitySerializer()(cities, many=True)
         return Response({'results': serializer.data})
 
 
-class SuggestedPlaceView(APIView):
+class SuggestedCityView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
         search = request.GET.get('search')
         if search:
-            places = Place.objects.filter(name__icontains=search)
+            places = City.objects.filter(name__icontains=search)
         else:
-            places = Place.objects.all()
-        serializer = PlaceSerializer(places, many=True)
+            places = City.objects.all()
+        serializer = CitySerializer()(places, many=True)
         return Response(serializer.data)
 
 
@@ -60,11 +60,11 @@ class SearchPlaceView(APIView):
             'children_ages') if 'children_ages' in request.GET else None
 
         try:
-            hotel = Hotel.objects.get(id=id)
-        except Hotel.DoesNotExist:
-            raise Http404("Hotel does not exist")
+            place = Place.objects.get(id=id)
+        except Place.DoesNotExist:
+            raise Http404("Place does not exist")
 
-        serializer = HotelSerializer(hotel)
+        serializer = PlaceSerializer()(place)
         return Response(serializer.data)
 
 
@@ -79,21 +79,21 @@ class SearchPlacesView(APIView):
         end_date = request.GET.get('endDate')
         children_ages = request.GET.get('childrenAges')
 
-        hotels = Hotel.objects.all()
+        places = Place.objects.all()
 
         if city_id:
-            hotels = hotels.filter(cityId=city_id)
+            places = places.filter(cityId=city_id)
 
-        hotels = hotels.filter(rooms__limit__gte=adults)
+        places = places.filter(rooms__limit__gte=adults)
 
         if children_ages:
             children_ages_list = children_ages.split(',')
             max_child_age = max([int(age) for age in children_ages_list])
 
-            hotels = hotels.filter(rooms__children_limit__gte=max_child_age)
+            places = places.filter(rooms__children_limit__gte=max_child_age)
 
-        hotels = hotels.distinct()
-        serializer = HotelSerializer(hotels, many=True)
+        places = places.distinct()
+        serializer = PlaceSerializer()(places, many=True)
         return Response(serializer.data)
 
 

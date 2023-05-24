@@ -52,7 +52,7 @@ class CancellationPolicy(models.Model):
 
 class Room(models.Model):
     name = models.CharField(max_length=255)
-    photos = models.CharField(max_length=1000)
+    photos = models.TextField()
     description = models.TextField()
     limit = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     children_limit = models.PositiveIntegerField(
@@ -60,8 +60,8 @@ class Room(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     meal = models.CharField(max_length=255)
-    hotel = models.ForeignKey(
-        'Hotel', on_delete=models.CASCADE, related_name='rooms', null=True)
+    place = models.ForeignKey(
+        'Place', on_delete=models.CASCADE, related_name='rooms', null=True)
     cancellation_policy = models.ForeignKey(
         CancellationPolicy,
         on_delete=models.CASCADE,
@@ -72,38 +72,38 @@ class Room(models.Model):
         return self.name
 
 
-class Hotel(models.Model):
+class Place(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     address = models.CharField(max_length=255)
-    is_favorite = models.BooleanField(default=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    photos = models.CharField(max_length=1000)
-    rating = models.FloatField(
-        validators=[MinValueValidator(0), MaxValueValidator(5)])
-    count_reviews = models.PositiveIntegerField()
+    photos = models.TextField()
     stars = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)])
+        validators=[MinValueValidator(0), MaxValueValidator(5)])
     check_in_time = models.CharField(max_length=10)
     check_out_time = models.CharField(max_length=10)
     cityName = models.CharField(max_length=255)
     cityId = models.PositiveIntegerField()
     cityTimezone = models.CharField(max_length=255)
-    distance = models.FloatField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    tags = models.ManyToManyField('Tag', related_name='places')
 
     def __str__(self):
         return self.name
 
 
-class Place(models.Model):
+class City(models.Model):
     name = models.CharField(max_length=255)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    cityId = models.PositiveIntegerField(null=True, blank=True)
-    type = models.CharField(max_length=10, choices=(
-        ('city', 'City'), ('place', 'Place')))
+
+    def __str__(self):
+        return self.name
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name

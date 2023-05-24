@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LoginView, SignupView, UserExistsView, CurrentUserView, CityListView, SuggestedPlaceView, SearchPlaceView, SearchPlacesView
+from .views import LoginView, SignupView, UserExistsView, CurrentUserView, CityListView, SuggestedCityView, SearchPlaceView, SearchPlacesView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -9,7 +9,7 @@ urlpatterns = [
     path('users/exists/', UserExistsView.as_view(), name='exists'),
     path('users/', CurrentUserView.as_view(), name='users'),
     path('city/', CityListView.as_view()),
-    path('suggest/', SuggestedPlaceView.as_view()),
+    path('suggest/', SuggestedCityView.as_view()),
     path('places/<int:id>/', SearchPlaceView.as_view()),
     path('places/', SearchPlacesView.as_view()),
 ]

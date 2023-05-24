@@ -1,6 +1,7 @@
+from .models import Tag
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, CancellationPolicy, Room, Hotel, Place
+from .models import CustomUser, CancellationPolicy, Room, Place, City, Tag
 
 
 class CancellationPolicySerializer(serializers.ModelSerializer):
@@ -23,29 +24,30 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class HotelSerializer(serializers.ModelSerializer):
-    rooms = RoomSerializer(many=True)
-    photos = serializers.SerializerMethodField()
-
-    def get_photos(self, obj):
-        if obj.photos:
-            return obj.photos.split(',')
-        return []
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        # Round the rating to two decimal places
-        representation['rating'] = round(instance.rating, 1)
-        return representation
-
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Hotel
+        model = Tag
         fields = '__all__'
 
 
 class PlaceSerializer(serializers.ModelSerializer):
+    rooms = RoomSerializer(many=True)
+    photos = serializers.SerializerMethodField()
+    # Assuming you have a TagSerializer defined
+    tags = TagSerializer(many=True)
+
+    def get_photos(self, place):
+        room_photos = place.rooms.values_list('photos', flat=True)
+        return [photo for photos in room_photos for photo in photos.split(',')]
+
     class Meta:
         model = Place
+        fields = '__all__'
+
+
+class CitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
         fields = '__all__'
 
 

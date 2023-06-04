@@ -16,8 +16,8 @@ for _ in range(10):
         name=fake.company(),
         description=fake.paragraph(),
         address=fake.address(),
-        latitude=uniform(55.7558, 55.7559),
-        longitude=uniform(37.6173, 37.6174),
+        latitude=uniform(55.75, 55.85),  # Increased latitude range
+        longitude=uniform(37.60, 37.70),  # Increased longitude range
         photos=fake.image_url(),
         stars=randint(1, 5),
         check_in_time='14:00',
@@ -57,8 +57,8 @@ for _ in range(6):
         name=fake.company(),
         description=fake.paragraph(),
         address=fake.address(),
-        latitude=uniform(55.7558, 55.7559),
-        longitude=uniform(37.6173, 37.6174),
+        latitude=uniform(55.75, 55.85),  # Increased latitude range
+        longitude=uniform(37.60, 37.70),  # Increased longitude range
         photos=fake.image_url(),
         stars=randint(1, 5),
         check_in_time='14:00',
@@ -77,8 +77,8 @@ for _ in range(4):
         name=fake.company(),
         description=fake.paragraph(),
         address=fake.address(),
-        latitude=uniform(55.7558, 55.7559),
-        longitude=uniform(37.6173, 37.6174),
+        latitude=uniform(55.75, 55.85),  # Increased latitude range
+        longitude=uniform(37.60, 37.70),  # Increased longitude range
         photos=fake.image_url(),
         stars=randint(1, 5),
         check_in_time='14:00',

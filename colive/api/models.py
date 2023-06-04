@@ -59,7 +59,7 @@ class Room(models.Model):
         validators=[MinValueValidator(1)], default=10)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    meal = models.CharField(max_length=255)
+    meal = models.BooleanField(default=True)
     place = models.ForeignKey(
         'Place', on_delete=models.CASCADE, related_name='rooms', null=True)
     cancellation_policy = models.ForeignKey(

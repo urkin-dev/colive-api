@@ -16,23 +16,13 @@ class CityListView(APIView):
         if limit is not None:
             limit = int(limit)
 
-        # Get the desired cities based on their IDs
-        desired_city_ids = [9213, 124124, 123213213213]
-        desired_cities = City.objects.filter(
-            type='city', cityId__in=desired_city_ids)
-
-        # Get the remaining cities excluding the desired ones
-        other_cities = City.objects.filter(
-            type='city').exclude(cityId__in=desired_city_ids)
-
-        # Combine the desired cities and other cities
-        cities = list(desired_cities) + list(other_cities)
+        cities = City.objects.all()
 
         # Limit the number of cities if specified
         if limit is not None:
             cities = cities[:limit]
 
-        serializer = CitySerializer()(cities, many=True)
+        serializer = CitySerializer(cities, many=True)
         return Response({'results': serializer.data})
 
 
@@ -42,10 +32,10 @@ class SuggestedCityView(APIView):
     def get(self, request):
         search = request.GET.get('search')
         if search:
-            places = City.objects.filter(name__icontains=search)
+            cities = City.objects.filter(name__icontains=search)
         else:
-            places = City.objects.all()
-        serializer = CitySerializer()(places, many=True)
+            cities = City.objects.all()
+        serializer = CitySerializer(cities, many=True)
         return Response(serializer.data)
 
 
@@ -64,7 +54,7 @@ class SearchPlaceView(APIView):
         except Place.DoesNotExist:
             raise Http404("Place does not exist")
 
-        serializer = PlaceSerializer()(place)
+        serializer = PlaceSerializer(place)
         return Response(serializer.data)
 
 
@@ -93,7 +83,7 @@ class SearchPlacesView(APIView):
             places = places.filter(rooms__children_limit__gte=max_child_age)
 
         places = places.distinct()
-        serializer = PlaceSerializer()(places, many=True)
+        serializer = PlaceSerializer(places, many=True)
         return Response(serializer.data)
 
 

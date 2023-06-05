@@ -72,6 +72,16 @@ class Room(models.Model):
         return self.name
 
 
+class Amenity(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    room = models.ForeignKey(
+        Room, on_delete=models.CASCADE, related_name='amenities')
+
+    def __str__(self):
+        return self.name
+
+
 class Place(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()

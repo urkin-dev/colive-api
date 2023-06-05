@@ -1,7 +1,13 @@
 from .models import Tag
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, CancellationPolicy, Room, Place, City, Tag
+from .models import CustomUser, CancellationPolicy, Room, Place, City, Tag, Amenity
+
+
+class AmenitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Amenity
+        fields = '__all__'
 
 
 class CancellationPolicySerializer(serializers.ModelSerializer):
@@ -13,11 +19,16 @@ class CancellationPolicySerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     cancellation_policy = CancellationPolicySerializer()
     photos = serializers.SerializerMethodField()
+    amenities = serializers.SerializerMethodField()
 
     def get_photos(self, obj):
         if obj.photos:
             return obj.photos.split(',')
         return []
+
+    def get_amenities(self, obj):
+        amenities = obj.amenity_set.all()
+        return AmenitySerializer(amenities, many=True).data
 
     class Meta:
         model = Room
@@ -33,12 +44,16 @@ class TagSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.ModelSerializer):
     rooms = RoomSerializer(many=True)
     photos = serializers.SerializerMethodField()
-    # Assuming you have a TagSerializer defined
     tags = TagSerializer(many=True)
+    amenities = serializers.SerializerMethodField()
 
     def get_photos(self, place):
         room_photos = place.rooms.values_list('photos', flat=True)
         return [photo for photos in room_photos for photo in photos.split(',')]
+
+    def get_amenities(self, place):
+        amenities = Amenity.objects.filter(room__place=place).distinct()
+        return AmenitySerializer(amenities, many=True).data
 
     class Meta:
         model = Place

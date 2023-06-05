@@ -50,6 +50,13 @@ class CancellationPolicy(models.Model):
     penalty_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
 
+class Amenity(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
 class Room(models.Model):
     name = models.CharField(max_length=255)
     photos = models.TextField()
@@ -67,16 +74,7 @@ class Room(models.Model):
         on_delete=models.CASCADE,
         related_name='rooms'
     )
-
-    def __str__(self):
-        return self.name
-
-
-class Amenity(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    room = models.ForeignKey(
-        Room, on_delete=models.CASCADE, related_name='amenities')
+    amenities = models.ManyToManyField('Amenity', related_name='rooms')
 
     def __str__(self):
         return self.name

@@ -19,16 +19,12 @@ class CancellationPolicySerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     cancellation_policy = CancellationPolicySerializer()
     photos = serializers.SerializerMethodField()
-    amenities = serializers.SerializerMethodField()
+    tags = AmenitySerializer(many=True)
 
     def get_photos(self, obj):
         if obj.photos:
             return obj.photos.split(',')
         return []
-
-    def get_amenities(self, obj):
-        amenities = obj.amenity_set.all()
-        return AmenitySerializer(amenities, many=True).data
 
     class Meta:
         model = Room
@@ -52,8 +48,8 @@ class PlaceSerializer(serializers.ModelSerializer):
         return [photo for photos in room_photos for photo in photos.split(',')]
 
     def get_amenities(self, place):
-        amenities = Amenity.objects.filter(room__place=place).distinct()
-        return AmenitySerializer(amenities, many=True).data
+        room_amenities = place.rooms.values_list('amenities', flat=True)
+        return AmenitySerializer(Amenity.objects.filter(id__in=room_amenities), many=True).data
 
     class Meta:
         model = Place

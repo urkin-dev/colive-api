@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, CancellationPolicy, Room, Place, City, Tag, Amenity
+from .models import CustomUser, Room, Place, City, Tag, Amenity
 
 
 class AmenityAdmin(admin.ModelAdmin):
@@ -19,13 +19,16 @@ class CustomUserAdmin(UserAdmin):
 
 
 class PlaceAdmin(admin.ModelAdmin):
-    filter_horizontal = ('tags',)  # Add this line
+    filter_horizontal = ('tags',)
+
+
+class RoomAdmin(admin.ModelAdmin):
+    filter_horizontal = ('amenities',)
 
 
 admin.site.register(Amenity, AmenityAdmin)
 admin.site.register(Place, PlaceAdmin)
-admin.site.register(CancellationPolicy)
-admin.site.register(Room)
+admin.site.register(Room, RoomAdmin)
 admin.site.register(City)
 admin.site.register(Tag)
 admin.site.register(CustomUser, CustomUserAdmin)

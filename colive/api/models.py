@@ -44,18 +44,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.first_name
 
 
-class CancellationPolicy(models.Model):
-    free_cancellation_before = models.DateTimeField(blank=True, null=True)
-    free_cancellation_possible = models.BooleanField(default=False)
-    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2)
-
-
 class Amenity(models.Model):
+    type = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField()
 
     def __str__(self):
         return self.name
+
 
 class Room(models.Model):
     name = models.CharField(max_length=255)
@@ -69,11 +65,6 @@ class Room(models.Model):
     meal = models.BooleanField(default=True)
     place = models.ForeignKey(
         'Place', on_delete=models.CASCADE, related_name='rooms', null=True)
-    cancellation_policy = models.ForeignKey(
-        CancellationPolicy,
-        on_delete=models.CASCADE,
-        related_name='rooms'
-    )
     amenities = models.ManyToManyField('Amenity', related_name='rooms')
 
     def __str__(self):
@@ -96,6 +87,13 @@ class Place(models.Model):
     cityTimezone = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     tags = models.ManyToManyField('Tag', related_name='places')
+    cancellation_policy = models.TextField(blank=True, null=True)
+
+    # Coliving fields
+    minStay = models.CharField(max_length=255, blank=True, null=True)
+    baths = models.PositiveIntegerField(blank=True, null=True)
+    bedrooms = models.PositiveIntegerField(blank=True, null=True)
+    community = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name

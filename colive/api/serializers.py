@@ -1,7 +1,7 @@
 from .models import Tag
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, CancellationPolicy, Room, Place, City, Tag, Amenity
+from .models import CustomUser, Room, Place, City, Tag, Amenity
 
 
 class AmenitySerializer(serializers.ModelSerializer):
@@ -10,20 +10,17 @@ class AmenitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CancellationPolicySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CancellationPolicy
-        fields = '__all__'
-
-
 class RoomSerializer(serializers.ModelSerializer):
-    cancellation_policy = CancellationPolicySerializer()
     photos = serializers.SerializerMethodField()
-    tags = AmenitySerializer(many=True)
+    amenities = AmenitySerializer(many=True)
 
     def get_photos(self, obj):
         if obj.photos:
-            return obj.photos.split(',')
+            photo_urls = obj.photos.split(',')
+            photo_urls = [url.strip()
+                          for url in photo_urls]  # Remove empty spaces
+            print(obj.place, obj.name, photo_urls)
+            return photo_urls
         return []
 
     class Meta:
@@ -45,7 +42,10 @@ class PlaceSerializer(serializers.ModelSerializer):
 
     def get_photos(self, place):
         room_photos = place.rooms.values_list('photos', flat=True)
-        return [photo for photos in room_photos for photo in photos.split(',')]
+        photo_urls = [photo.strip() for photos in room_photos for photo in photos.split(
+            ',') if photo.strip()]
+
+        return photo_urls
 
     def get_amenities(self, place):
         room_amenities = place.rooms.values_list('amenities', flat=True)

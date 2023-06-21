@@ -29,6 +29,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email_verification_status = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 
+    bio = models.TextField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    city = models.ForeignKey(
+        'City', on_delete=models.SET_NULL, null=True, blank=True)
+    interests = models.ManyToManyField('Interest', related_name='users')
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -42,6 +49,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
+
+class Interest(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 
 class Amenity(models.Model):

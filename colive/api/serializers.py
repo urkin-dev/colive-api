@@ -1,7 +1,7 @@
 from .models import Tag
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, Room, Place, City, Tag, Amenity
+from .models import CustomUser, Room, Place, City, Tag, Amenity, Interest
 
 
 class AmenitySerializer(serializers.ModelSerializer):
@@ -62,11 +62,23 @@ class CitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class InterestsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interest
+        fields = '__all__'
+
+
 class CustomUserSerializer(serializers.ModelSerializer):
+    interests = InterestsSerializer(many=True)
+    city = serializers.SerializerMethodField()
+
+    def get_city(self, user):
+        return user.city.name if user.city else None
+
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'first_name', 'last_name', 'phone',
-                  'phone_verification_status', 'email_verification_status', 'is_staff']
+                  'phone_verification_status', 'email_verification_status', 'is_staff', 'age', 'gender', 'city', 'interests', 'bio']
         partial = True
 
 

@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import LoginSerializer, SignupSerializer, CustomUserSerializer, CitySerializer, PlaceSerializer
+from .serializers import LoginSerializer, SignupSerializer, CustomUserSerializer, CitySerializer, PlaceSerializer, InterestsSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import CustomUser, City, Place
+from .models import CustomUser, City, Place, Interest
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import Http404
 
@@ -23,6 +23,24 @@ class CityListView(APIView):
             cities = cities[:limit]
 
         serializer = CitySerializer(cities, many=True)
+        return Response({'results': serializer.data})
+
+
+class InterestListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        limit = request.GET.get('limit')
+        if limit is not None:
+            limit = int(limit)
+
+        interests = Interest.objects.all()
+
+        # Limit the number of cities if specified
+        if limit is not None:
+            interests = interests[:limit]
+
+        serializer = InterestsSerializer(interests, many=True)
         return Response({'results': serializer.data})
 
 
@@ -99,7 +117,15 @@ class CurrentUserView(APIView):
         user = request.user
         serializer = CustomUserSerializer(
             user, data=request.data, partial=True)
+
+        city_id = request.data['city']
         if serializer.is_valid():
+            try:
+                city = City.objects.get(pk=city_id)
+                serializer.validated_data['city'] = city
+            except City.DoesNotExist:
+                return Response({'error': 'Invalid city ID'}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save()
             return Response(serializer.data)
 

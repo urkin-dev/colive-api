@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Room, Place, City, Tag, Amenity
+from .models import CustomUser, Room, Place, City, Tag, Amenity, Interest
 
 
 class AmenityAdmin(admin.ModelAdmin):
@@ -12,9 +12,23 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     list_display = ('email', 'first_name', 'last_name', 'is_staff')
     list_filter = ('is_staff', 'is_superuser', 'groups')
-    fieldsets = UserAdmin.fieldsets + (
-        ('Custom fields', {'fields': (
-            'phone', 'phone_verification_status', 'email_verification_status')}),
+    filter_horizontal = ('interests',)
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name', 'phone')}),
+        ('Permissions', {'fields': ('is_staff',
+         'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login',)}),
+        ('Verification Status', {
+         'fields': ('phone_verification_status', 'email_verification_status')}),
+        ('Additional Fields', {
+         'fields': ('age', 'bio', 'gender', 'city', 'interests')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
     )
 
 
@@ -32,3 +46,4 @@ admin.site.register(Room, RoomAdmin)
 admin.site.register(City)
 admin.site.register(Tag)
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Interest)
